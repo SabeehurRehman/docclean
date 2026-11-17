@@ -32,3 +32,25 @@ jobs:
         with:
           name: selftest-output
           path: selftest-out/
+
+  release:
+    # Publishes DocClean.exe as a public download when a version tag (v1.0.0, ...) is pushed.
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: DocClean-windows
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" DocClean.exe \
+            --repo "${{ github.repository }}" \
+            --title "DocClean ${{ github.ref_name }}" \
+            --notes "**Download:** DocClean.exe below (Windows 10/11, 64-bit). No installation needed – just double-click it.
+
+          First launch: if Windows shows *Windows protected your PC*, click **More info → Run anyway** (the app is not code-signed). The first start takes a few seconds."
